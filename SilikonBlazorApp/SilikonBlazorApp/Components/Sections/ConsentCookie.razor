@@ -1,0 +1,40 @@
+﻿@using Microsoft.AspNetCore.Http.Features
+@using Microsoft.AspNetCore.Http
+
+@inject IHttpContextAccessor Http
+@inject IJSRuntime JSRuntime
+@rendermode InteractiveServer
+@if (showConsentBanner)
+{
+    <div id="cookie-consent" class="alert alert-gray fixed-bottom">
+        <div class="container">
+            <span>This website uses cookies to improve user experience</span>
+            <button class="btn btn-theme" @onclick="AcceptCookieConsent">Ok</button>
+        </div>
+    </div>
+}
+
+@code {
+    private bool showConsentBanner = false;
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            var cookieConsent = await JSRuntime.InvokeAsync<string>("getCookie", "CookieConsent");
+            if (string.IsNullOrEmpty(cookieConsent))
+            {
+                showConsentBanner = true;
+                StateHasChanged();
+            }
+        }
+    }
+
+    private async Task AcceptCookieConsent()
+    {
+        await JSRuntime.InvokeVoidAsync("acceptCookieConsent");
+        showConsentBanner = false;
+    }
+}
+
+
